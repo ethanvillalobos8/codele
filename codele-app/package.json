@@ -9,15 +9,24 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@codemirror/lang-python": "^6.1.4",
+    "@codemirror/theme-one-dark": "^6.1.2",
+    "@uiw/react-codemirror": "^4.21.21",
+    "firebase": "^10.8.0",
+    "firebaseui": "^6.1.0",
+    "next": "14.1.0",
+    "openai": "^4.26.0",
+    "python-shell": "^5.0.0",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.1.0"
+    "react-icons": "^5.0.1",
+    "thememirror": "^2.0.1"
   },
   "devDependencies": {
     "autoprefixer": "^10.0.1",
-    "postcss": "^8",
-    "tailwindcss": "^3.3.0",
     "eslint": "^8",
-    "eslint-config-next": "14.1.0"
+    "eslint-config-next": "14.1.0",
+    "postcss": "^8",
+    "tailwindcss": "^3.3.0"
   }
 }
