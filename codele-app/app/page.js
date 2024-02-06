@@ -28,10 +28,9 @@ export default function Home() {
 
   return (
     <main>
-      <div className="flex h-screen bg-[#201931]">
+      <div className="flex h-screen w-screen bg-[#1a1429] transition-all duration-300">
         <NavBar />
         <Editor value={code} onChange={handleEditorChange} />
-        {/* Rest of the page content */}
       </div>
     </main>
   );
