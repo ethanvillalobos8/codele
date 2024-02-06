@@ -38,9 +38,3 @@ next-env.d.ts
 
 # Firebase credentials
 **/serviceAccountKey.json
-
-# Temporary database
-problems.js
-
-# OpenAI prompt
-prompt.js
