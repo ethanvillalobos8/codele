@@ -27,27 +27,28 @@ export default function Sidebar({ codelle }) {
                 {isOpen ? <PiSidebarSimpleFill /> : <PiSidebarSimpleDuotone />}
             </button>
             {isOpen ? 
-                <div className="flex-grow bg-[#1a1429] border-r-4 border-[#2a2950] w-full h-full px-6 overflow-auto transition-all duration-300">
+                <div className="flex-grow bg-[#1a1429] border-r-4 border-[#2a2950] w-full h-full px-6 transition-all duration-300">
                     <div className='grid grid-rows-2 h-full'>
-                        <div className='h-full'>
+                        <div className='h-full overflow-auto'>
                             <div className="mb-4">
-                                <h2 className="font-bold text-3xl text-[#f6f6f6] mb-4">Codele of the Day</h2>
+                                <h2 className="font-bold text-2xl md:text-3xl text-[#f6f6f6] mb-4">Codele of the Day</h2>
                                 <div className="w-full h-[.15rem] bg-[#4c506a] mb-4 rounded-lg opacity-50"></div>
-                                {todaysProb.input && <p className='pb-1 text-[#c2bed9]'><strong className='text-[#ededed]'>Input:</strong> {todaysProb.input}</p>}
-                                {todaysProb.output && <p className='pb-6 text-[#c2bed9]'><strong className='text-[#ededed]'>Output:</strong> {todaysProb.output}</p>}
-                                {todaysProb.tags && <p className='text-[#c2bed9]'><strong className='text-[#ededed]'>Tags:</strong> {todaysProb.tags.join(', ')}</p>}
+                                <p className='text-sm md:text-base pb-6 text-[#f6f6f6]'>{todaysProb.description}</p>
+                                {todaysProb.input && <p className='text-sm md:text-base pb-1 text-[#c2bed9]'><strong className='text-[#ededed]'>Input:</strong> {todaysProb.input}</p>}
+                                {todaysProb.output && <p className='text-sm md:text-base pb-6 text-[#c2bed9]'><strong className='text-[#ededed]'>Output:</strong> {todaysProb.output}</p>}
+                                {todaysProb.tags && <p className='text-sm md:text-base text-[#c2bed9]'><strong className='text-[#ededed]'>Tags:</strong> {todaysProb.tags.join(', ')}</p>}
                             </div>
                             {/* Used to import data from functional component */}
                             <ProblemData />
-                            <div className="flex-grow">
+                            <div className="grow">
                                 <div className="flex items-center">
-                                    <h2 className="font-bold">Codelle</h2>
-                                    <span className="ml-2"><RiRobot2Fill /></span>
+                                    <h2 className="text-sm md:text-base font-bold">Codelle</h2>
+                                    <span className="text-sm md:text-base ml-2"><RiRobot2Fill /></span>
                                 </div>
-                                <p className='text-sm font-mono text-justify pt-1'>{codelle}</p>
+                                <p className='grow text-sm md:text-base font-mono text-justify pt-1 overflow-auto'>{codelle}</p>
                             </div>
                         </div>
-                        {user ? <Statistics /> : <div className="text-[#f6f6f6]">Create an account or sign in to start tracking your stats!</div>}
+                        {user ? <Statistics /> : <div className=" text-[#f6f6f6] pt-4">Create an account or sign in to start tracking your stats!</div>}
                     </div>
                 </div> 
             : <div className="flex w-0 md:w-16 h-full md:bg-[#1a1429] md:border-r-4 md:border-[#2a2950] transition-all duration-300"></div>}

@@ -8,6 +8,7 @@ import { Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
 
 import { IoIosStats } from "react-icons/io";
+import { sum } from 'firebase/firestore';
 
 const Statistics = () => {
     const [userData, setUserData] = useState(null);
@@ -56,6 +57,14 @@ const Statistics = () => {
             ],
         };
 
+        // Cumulative sum of attemptFrequencies
+        function cumulativeSum(attemptFrequencies) {
+            for (let i = 0; i < 6; i++) {
+                attemptFrequencies[i] += attemptFrequencies[i - 1] || 0;
+                return attemptFrequencies;
+            }
+        }
+
         const chartOptions = {
             responsive: true,
             maintainAspectRatio: false,
@@ -63,9 +72,9 @@ const Statistics = () => {
             scales: {
                 x: {
                     beginAtZero: true,
-                    max: 25,
+                    max: cumulativeSum(attemptFrequencies),
                     ticks: {
-                        color: '#c2bed9',
+                        display: false,
                     },
                 },
                 y: {
@@ -85,28 +94,28 @@ const Statistics = () => {
     };
 
     return (
-        <div className="grid h-full w-full mb-2 shadow-md">
-            <h2 className="flex text-xl font-semibold text-[#f6f6f6] items-center">Your Statistics<span className='ml-1 text-2xl text-[#55e088]'><IoIosStats /></span></h2>
-            <div className="grid grid-cols-2 gap-1 text-[#f6f6f6] mb-4 h-full">
-                <div className='grid grid-cols-5'>
+        <div className="grid h-full w-full mb-2 pt-4 shadow-md overflow-auto">
+            <h2 className="flex text-lg md:text-xl font-semibold text-[#f6f6f6] items-center pb-2">Your Statistics<span className='ml-1 text-2xl text-[#55e088]'><IoIosStats /></span></h2>
+            <div className="grid grid-cols-2 gap-1 text-[#f6f6f6] mb-4 h-full text-xs md:text-base">
+                <div className='grid grid-cols-5 text-wrap'>
                     <p className='text-[#c2bed9] col-span-4'>Games Played:</p>
                     <span className="font-semibold text-[#f6f6f6]">{userData.totalGamesPlayed}</span>
                 </div>
-                <div className='grid grid-cols-5'>
+                <div className='grid grid-cols-5 text-wrap'>
                     <p className='text-[#c2bed9] col-span-4'>Win Percentage:</p>
                     <span className="font-semibold text-[#f6f6f6]">{Math.round(winPercentage)}%</span>    
                 </div>
-                <div className='grid grid-cols-5'>
+                <div className='grid grid-cols-5 text-wrap'>
                     <p className='text-[#c2bed9] col-span-4'>Current Win Streak:</p>
                     <span className="font-semibold text-[#f6f6f6]">{userData.currentStreak}</span>
                 </div>
-                <div className='grid grid-cols-5'>
+                <div className='grid grid-cols-5 text-wrap'>
                     <p className='text-[#c2bed9] col-span-4'>Maximum Win Streak:</p>
                     <span className="font-semibold text-[#f6f6f6]">{userData.maxStreak}</span>
                 </div>
             </div>
             <div className='h-full'>
-                <h3 className="text-lg font-semibold text-[#f6f6f6] mb-3">Guess Distribution</h3>
+                <h3 className="text-md md:text-lg font-semibold text-[#f6f6f6] mb-1">Guess Distribution</h3>
                 <div>
                     <GuessDistributionChart />
                 </div>
