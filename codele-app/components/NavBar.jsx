@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { auth } from '@/auth';
 import SignIn from "./SignIn";
+import Image from 'next/image'
 
 const NavBar = () => {
     const [user, setUser] = useState(null);
@@ -23,9 +24,9 @@ const NavBar = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     <div className="flex-shrink-0">
-                        <h1 className="text-2xl font-bold">Codele.</h1>
+                        <h1 className="flex text-2xl font-bold justify-center items-center"><Image className="mr-1" src="/codele_temp.png" width={40} height={40}></Image>Codele</h1>
                     </div>
-
+                    
                     <SignIn user={user}/>
                 </div>
             </div>
