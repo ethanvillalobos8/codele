@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { auth } from '/firebase-config';
 import { onAuthStateChanged } from 'firebase/auth';
 import Statistics from './Statistics';
-import { todaysProblem } from '@/database/problems';
+import ProblemData from '@/database/problems';
 import { PiSidebarSimpleFill, PiSidebarSimpleDuotone } from "react-icons/pi";
 import { RiRobot2Fill } from "react-icons/ri";
 
@@ -30,14 +30,7 @@ export default function Sidebar({ codelle }) {
                 <div className="flex-grow bg-[#1a1429] border-r-4 border-[#2a2950] w-full h-full px-6 overflow-auto transition-all duration-300">
                     <div className='grid grid-rows-2 h-full'>
                         <div className='h-full'>
-                            <div className="mb-4">
-                                <h2 className="font-bold text-3xl text-[#f6f6f6] mb-4">Codele of the Day</h2>
-                                <div className="w-full h-[.15rem] bg-[#4c506a] mb-4 rounded-lg opacity-50"></div>
-                                <p className='pb-6 text-[#f6f6f6]'>{todaysProblem.description}</p>
-                                {todaysProblem.input && <p className='pb-1 text-[#c2bed9]'><strong className='text-[#ededed]'>Input:</strong> {todaysProblem.input}</p>}
-                                {todaysProblem.output && <p className='pb-6 text-[#c2bed9]'><strong className='text-[#ededed]'>Output:</strong> {todaysProblem.output}</p>}
-                                {todaysProblem.tags && <p className='text-[#c2bed9]'><strong className='text-[#ededed]'>Tags:</strong> {todaysProblem.tags.join(', ')}</p>}
-                            </div>
+                            <ProblemData />
                             <div className="flex-grow">
                                 <div className="flex items-center">
                                     <h2 className="font-bold">Codelle</h2>

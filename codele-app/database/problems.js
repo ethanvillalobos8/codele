@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect, useState } from 'react';
+
 const programmingProblems = [
     {
         id: 1,
@@ -212,20 +214,6 @@ function shuffleArray(array) {
     return array;
 }
 
-function initializeProblems(problems) {
-    const storedProblems = localStorage.getItem('shuffledProblems');
-    if (!storedProblems) {
-        const shuffledProblems = shuffleArray([...problems]);
-        localStorage.setItem('shuffledProblems', JSON.stringify(shuffledProblems));
-        localStorage.setItem('lastAccessDate', new Date().toDateString());
-        localStorage.setItem('currentIndex', '0');
-        return shuffledProblems;
-    }
-    return JSON.parse(storedProblems);
-}
-
-const programmingProblemsShuffled = initializeProblems(programmingProblems);
-
 function getTodaysProblem(shuffledProblems) {
     const lastAccessDate = localStorage.getItem('lastAccessDate');
     const today = new Date().toDateString();
@@ -241,9 +229,53 @@ function getTodaysProblem(shuffledProblems) {
         return todaysProblem;
     }
 
-    // If already accessed today, return the same problem as before
     const currentIndex = (parseInt(localStorage.getItem('currentIndex'), 10) - 1 + shuffledProblems.length) % shuffledProblems.length;
     return shuffledProblems[currentIndex];
 }
 
-export const todaysProblem = getTodaysProblem(programmingProblemsShuffled);
+function initializeProblems(problems) {
+    const storedProblems = localStorage.getItem('shuffledProblems');
+    if (!storedProblems) {
+        const shuffledProblems = shuffleArray([...problems]);
+        localStorage.setItem('shuffledProblems', JSON.stringify(shuffledProblems));
+        localStorage.setItem('lastAccessDate', new Date().toDateString());
+        localStorage.setItem('currentIndex', '0');
+        return shuffledProblems;
+    }
+    return JSON.parse(storedProblems);
+}
+
+export const useTodaysProblem = () => {
+    const [todaysProblem, setTodaysProblem] = useState(null);
+
+    useEffect(() => {
+        const shuffledProblems = initializeProblems(programmingProblems);
+        setTodaysProblem(getTodaysProblem(shuffledProblems));
+    }, []);
+
+    return todaysProblem;
+};
+
+export let todaysProb = [];
+
+export default function ProblemData() {
+    const todaysProblem = useTodaysProblem();
+
+    // Check if todaysProblem is not null
+    if (!todaysProblem) {
+        return <div className='mb-4'>Loading problem...</div>;
+    }
+
+    todaysProb = todaysProblem;
+
+    return (
+        <div className="mb-4">
+            <h2 className="font-bold text-3xl text-[#f6f6f6] mb-4">Codele of the Day</h2>
+            <div className="w-full h-[.15rem] bg-[#4c506a] mb-4 rounded-lg opacity-50"></div>
+            <p className='pb-6 text-[#f6f6f6]'>{todaysProblem.description}</p>
+            {todaysProblem.input && <p className='pb-1 text-[#c2bed9]'>Input: {todaysProblem.input}</p>}
+            {todaysProblem.output && <p className='pb-6 text-[#c2bed9]'>Output: {todaysProblem.output}</p>}
+            {todaysProblem.tags && <p className='text-[#c2bed9]'>Tags: {todaysProblem.tags.join(', ')}</p>}
+        </div>
+    );
+}
