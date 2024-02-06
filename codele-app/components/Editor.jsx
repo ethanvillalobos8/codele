@@ -1,4 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/firebase-config';
+import { onAuthStateChanged } from 'firebase/auth';
 import { useCodeMirror } from '@uiw/react-codemirror';
 import { python } from '@codemirror/lang-python';
 import {createTheme} from 'thememirror';
@@ -6,7 +9,12 @@ import {tags as t} from '@lezer/highlight';
 import '@/styles/custom-codemirror-style.css'
 
 import Sidebar from '../components/Sidebar';
+import { todaysProblem } from '@/database/problems';
+import { prompt } from '@/utils/prompt';
+import { fetchUserData } from '@/pages/api/fetch-data';
 import { FaPlay } from "react-icons/fa";
+
+const today = new Date().toISOString().slice(0, 10); // Format YYYY-MM-DD
 
 const codele = createTheme({
 	variant: 'dark',
@@ -81,9 +89,10 @@ const codele = createTheme({
 
 const Editor = ({ value, onChange }) => {
     const editorRef = useRef(null);
+    console.log(todaysProblem)
     const { setContainer } = useCodeMirror({
         container: editorRef.current,
-        value: value,
+        value: todaysProblem.partialCode,
         basicSetup: {
             lineNumbers: true,
         },
@@ -99,11 +108,90 @@ const Editor = ({ value, onChange }) => {
         },
     });
 
-    const runUserCode = async (code) => {
+    const [userData, setUserData] = useState(null);
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const data = await fetchUserData();
+                setUserData(data);
+            } else {
+                console.log("No user logged in");
+            }
+        });
+
+        // Cleanup subscription on unmount
+        return () => unsubscribe();
+    }, []);
+
+    const recordAttempt = async (winLoss) => {
+        const user = auth.currentUser;
+        const today = new Date().toISOString().slice(0, 10); // Format YYYY-MM-DD
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+    
+        if (userDoc.exists()) {
+            const userData = userDoc.data().userData || {};
+            const dailyAttempts = userData.dailyAttempts || {};
+            let didWinToday = userData.didWinToday || false;
+    
+            // Check if the user did not play today and reset didWin if they won yesterday
+            const lastPlayedDate = userData.lastPlayedDate || '';
+            if (lastPlayedDate !== today && userData.didWin) {
+                didWinToday = false;
+            }
+    
+            let isWin = false;
+    
+            isWin = winLoss;
+            console.log(winLoss);
+    
+            // Increment or initialize the count for today only if they haven't won yet
+            if (!didWinToday) {
+                dailyAttempts[today] = (dailyAttempts[today] || 0) + 1;
+            }
+    
+            // Update logic for streaks and win status
+            let currentStreak = userData.currentStreak || 0;
+            let maxStreak = userData.maxStreak || 0;
+    
+            if (isWin && !didWinToday) {
+                didWinToday = true;
+                currentStreak += 1; // Increment streak only on first win of the day
+                maxStreak = Math.max(maxStreak, currentStreak);
+                userData.wins = (userData.wins || 0) + 1;
+            }
+
+            const totalGamesPlayed = lastPlayedDate === today ? userData.totalGamesPlayed : userData.totalGamesPlayed + 1;
+    
+            await updateDoc(userDocRef, {
+                userData: {
+                    ...userData,
+                    dailyAttempts: dailyAttempts,
+                    totalGamesPlayed: totalGamesPlayed,
+                    lastPlayedDate: today,
+                    didWin: didWinToday,
+                    wins: userData.wins,
+                    currentStreak: currentStreak,
+                    maxStreak: maxStreak,
+                    didWinToday: didWinToday
+                }
+            });
+        }
+    };    
+
+    const runUserCode = async (code, winLoss) => {
         try {
-            let problemStatement = "Write a function that takes in a string and returns the length of the longest substring without repeating characters.";
-            const contextMessage = `You will act as a judge, analyzing every line of the user submitted code and seeing if it will solve a certain task. You will do so by running the code based on a example you come up with that matches the given problem. You will be provided with that coding task and the user submitted code in string format. Here is the user submitted code: ${problemStatement}. You will parse the string and understand the code given to you. You will then respond with an array that has 3 elements only, where the first element in the array is text. That text will be your judgment of the code. Congratulate the user if they got it right. If the user was close, tell them they were close and give them hints on what they can do to fix their code. If they were not so close, tell them where they can improve, but never give them the answer. The code will be written in any language the user is comfortable with.  The next element in the array will be a numeric score from 0 to 100, where 0 means the user was completely off the mark and 100 means the user got it right, but before you give them a 100, review their code again and make sure nothing is missing that will cause any errors. Everything in between will be dependent on how much they need to fix in their code. The final element in the array will be guidance on what areas they should focus on improving based on all of the code they submitted until the 5th attempt. After the 5th attempt, you will put the most efficient solution to the problem as the third element in the array in whatever language the user was using. Only respond in array format (here is an example ["response 1", "response 2", "response 3"]) where every element is a string; do not respond in any other way other than an array of the three elements I specified no matter what under any circumstances.`;
-        
+            // Check if attempts is < 6
+            if (userData.dailyAttempts[today] < 6) {
+                recordAttempt(winLoss);
+            } else if (!userData) {
+                console.log("User data not found");
+            }
+
+            let problemStatement = todaysProblem.description;
+            let contextMessage = prompt;
+
             const messages = [
             { role: "system", content: "You are a helpful assistant." },
             { role: "user", content: code }, // User's code
@@ -169,6 +257,8 @@ const Editor = ({ value, onChange }) => {
         };
     }, [editorRef, setContainer]);
 
+    let winLoss = openaiResponse && JSON.parse(openaiResponse)[1] === 'true' ? true : false;
+
     return (
         <>
             <Sidebar codelle={openaiResponse && JSON.parse(openaiResponse)[2]}/>
@@ -176,16 +266,16 @@ const Editor = ({ value, onChange }) => {
                 <div className="grid grid-rows-4 h-full w-full border-y-4 border-[#2a2950]">
                     <div className="row-span-3 relative">
                         <div ref={editorRef} className="h-full w-full pt-9 px-3 bg-gradient-to-br from-[#232246] via-[#241e3d] to-[#251937] bg-opacity-75 rounded-l-md" />
-                        <button onClick={() => runUserCode(value)} className="absolute top-0 right-0 mt-3 mr-6 flex items-center space-x-2 text-xs text-[#4c506a] hover:text-[#55e088]">
+                        <button onClick={() => runUserCode(value, winLoss)} className="absolute top-0 right-0 mt-3 mr-6 flex items-center space-x-2 text-xs text-[#4c506a] hover:text-[#55e088]">
                             <FaPlay /> <span className='font-semibold'>Run</span>
                         </button>
                     </div>
                     <div className="bg-[#161121] rounded-r-md border-t-4 border-[#2a2950] p-4 h-full overflow-y-auto">
-                        <h2 className="text-white text-sm font-semibold mb-2">RESULTS</h2>
+                        <h2 className="text-white text-sm font-semibold mb-2">RESULT</h2>
                         {openaiResponse ? (
-                            <p className="text-[#eaeaea] font-mono">{JSON.parse(openaiResponse)[0]}</p>
+                            <p className="text-[#eaeaea] text-sm font-mono">{JSON.parse(openaiResponse)[0]}</p>
                         ) : (
-                            <p className="text-[#eaeaea] font-mono"></p>
+                            <p className="text-[#eaeaea] text-sm font-mono"></p>
                         )}
                     </div>
                 </div>
