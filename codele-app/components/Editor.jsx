@@ -184,10 +184,10 @@ const Editor = ({ value, onChange }) => {
     const runUserCode = async (code, winLoss) => {
         try {
             // Check if attempts is < 6
-            if (userData.dailyAttempts[today] < 6 || !userData.dailyAttempts[today]) {
-                recordAttempt(winLoss);
-            } else if (!userData) {
-                console.log("User data not found");
+            if (auth.currentUser && userData) {
+                if (userData.dailyAttempts[today] < 6 || !userData.dailyAttempts[today]) {
+                    recordAttempt(winLoss);
+                }
             }
 
             let contextMessage = prompt;
