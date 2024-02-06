@@ -269,13 +269,7 @@ export default function ProblemData() {
     todaysProb = todaysProblem;
 
     return (
-        <div className="mb-4">
-            <h2 className="font-bold text-3xl text-[#f6f6f6] mb-4">Codele of the Day</h2>
-            <div className="w-full h-[.15rem] bg-[#4c506a] mb-4 rounded-lg opacity-50"></div>
-            <p className='pb-6 text-[#f6f6f6]'>{todaysProblem.description}</p>
-            {todaysProblem.input && <p className='pb-1 text-[#c2bed9]'>Input: {todaysProblem.input}</p>}
-            {todaysProblem.output && <p className='pb-6 text-[#c2bed9]'>Output: {todaysProblem.output}</p>}
-            {todaysProblem.tags && <p className='text-[#c2bed9]'>Tags: {todaysProblem.tags.join(', ')}</p>}
-        </div>
+        <>
+        </>
     );
 }
