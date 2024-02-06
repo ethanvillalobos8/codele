@@ -1,6 +1,6 @@
-import { todaysProblem } from '@/database/problems';
+import { todaysProb } from '@/database/problems';
 
-let problemStatement = todaysProblem.description;
+let problemStatement = todaysProb.description;
 export let prompt = `You are a code analyzer (or code judge) for a game called “Codele.” Codele is similar to the game “Wordle”. In Wordle, the user makes guesses on a 5 letter word and uses the color of the tiles to determine whether the corresponding letter is either
 
 1. In the correct spot

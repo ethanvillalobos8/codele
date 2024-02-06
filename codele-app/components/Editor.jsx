@@ -9,7 +9,7 @@ import {tags as t} from '@lezer/highlight';
 import '@/styles/custom-codemirror-style.css'
 
 import Sidebar from '../components/Sidebar';
-import { todaysProblem } from '@/database/problems';
+import { todaysProb } from '@/database/problems';
 import { prompt } from '@/utils/prompt';
 import { fetchUserData } from '@/pages/api/fetch-data';
 import { FaPlay } from "react-icons/fa";
@@ -89,7 +89,8 @@ const codele = createTheme({
 
 const Editor = ({ value, onChange }) => {
     const editorRef = useRef(null);
-    console.log(todaysProblem)
+    const todaysProblem = todaysProb;
+
     const { setContainer } = useCodeMirror({
         container: editorRef.current,
         value: todaysProblem.partialCode,
@@ -183,13 +184,12 @@ const Editor = ({ value, onChange }) => {
     const runUserCode = async (code, winLoss) => {
         try {
             // Check if attempts is < 6
-            if (userData.dailyAttempts[today] < 6) {
+            if (userData.dailyAttempts[today] < 6 || !userData.dailyAttempts[today]) {
                 recordAttempt(winLoss);
             } else if (!userData) {
                 console.log("User data not found");
             }
 
-            let problemStatement = todaysProblem.description;
             let contextMessage = prompt;
 
             const messages = [
