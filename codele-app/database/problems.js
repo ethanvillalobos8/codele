@@ -1,3 +1,5 @@
+'use client'
+
 const programmingProblems = [
     {
         id: 1,
