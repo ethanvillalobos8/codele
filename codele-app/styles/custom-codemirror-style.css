@@ -1,4 +1,24 @@
+.cm-content {
+    background: transparent;
+    border-color: transparent;
+    overflow: auto;
+}
+
 .cm-editor {
     background: transparent;
     border-color: transparent;
+    height: 100%;
+}
+
+.cm-gutter {
+    background: #242444;
+    z-index: 0;
+}
+
+.cm-gutter.cm-lineNumbers {
+    padding-left: 12px;
+}
+
+.ͼ1.cm-focused {
+    outline: none;
 }
