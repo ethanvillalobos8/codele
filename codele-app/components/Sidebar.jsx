@@ -26,7 +26,7 @@ export default function Sidebar({ codelle }) {
     return (
         <div className={`flex z-20 flex-col h-screen transition-all duration-300 ${isOpen ? 'w-screen md:w-2/5 max-md:absolute max-md:z-10' : 'w-0 md:w-16'} pt-16 flex-shrink-0`}>
             <button
-                className={`grid p-2 text-[#4c506a] text-2xl justify-items-end transition-all duration-300 ${isOpen ? 'w-full bg-[#1a1429] hover:text-[#c2bed9] border-r-4 border-[#2a2950]' : 'w-0 md:w-16 md:bg-[#1a1429] md:hover:text-[#c2bed9] md:border-r-4 md:border-[#2a2950]'}`}
+                className={`grid p-2 text-[#4c506a] text-2xl justify-items-end transition-all duration-300 ${isOpen ? 'w-full bg-[#1a1429] hover:text-[#c2bed9] border-r-4 border-[#2a2950]' : 'w-0 md:w-16 md:bg-[#1a1429] md:hover:text-[#c2bed9] md:border-r-4 md:border-[#2a2950] z-0'}`}
                 onClick={() => setIsOpen(!isOpen)}
             >
                 {isOpen ? <PiSidebarSimpleFill /> : <PiSidebarSimpleDuotone />}
