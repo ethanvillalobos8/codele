@@ -267,10 +267,10 @@ const Editor = ({ value, onChange }) => {
     return (
         <>
             <Sidebar codelle={openaiResponse && JSON.parse(openaiResponse)[2]} />
-            <div className="flex pt-16 h-screen w-screen flex-grow-0">
+            <div className="flex pt-16 max-h-screen w-screen flex-grow-0">
                 <div className="grid grid-rows-4 h-full w-full border-b-4 border-[#2a2950] flex-grow-0">
                     <div className="flex flex-rows flex-grow-0 relative w-full row-span-3 overflow-y-auto">
-                        <div className='bg-[#1a1429] fixed right-0 w-full h-10 border-b-4 border-[#2a2950]'></div>
+                        <div className='bg-[#1a1429] absolute right-0 w-full h-10 border-b-4 border-[#2a2950]'></div>
                         <div ref={editorRef} className="h-full w-full pt-10 pr-3 bg-gradient-to-br from-[#232246] via-[#241e3d] to-[#251937] bg-opacity-75 rounded-l-md" />
                         <button onClick={() => runUserCode(value, winLoss)} className="absolute top-0 right-0 mt-2.5 mr-6 flex items-center space-x-2 text-xs text-[#4c506a] hover:text-[#55e088]">
                             <FaPlay /> <span className='font-semibold'>Run</span>

@@ -24,8 +24,8 @@ const NavBar = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     <div className="flex-shrink-0">
-                        <h1 className="flex text-2xl font-bold justify-center items-center">
-                            <Image src="/codele_temp.png" alt="Codele Logo" width={40} height={40} className="mr-1" />
+                        <h1 className="flex text-xl md:text-2xl font-bold justify-center items-center">
+                            <Image src="/codele_temp.png" alt="Codele Logo" width={40} height={40} className="mr-1 w-8 h-8 md:w-10 md:h-10" />
                             <div className="flex justify-center">
                                 <span>Codele</span>
                                 <span className="text-xs font-light italic animate-pulse">alpha</span>
@@ -33,7 +33,7 @@ const NavBar = () => {
                         </h1>
                     </div>
                     <div className="flex items-center">
-                        <a href="https://forms.gle/nBRtY3dvVaLehrqs5" target="_blank" rel="noopener noreferrer" className="mr-12 text-sm font-medium">Feedback</a>
+                        <a href="https://forms.gle/nBRtY3dvVaLehrqs5" target="_blank" rel="noopener noreferrer" className="mr-4 md:mr-12 text-sm font-medium">Feedback</a>
                         <SignIn user={user} />
                     </div>
                 </div>
