@@ -50,7 +50,7 @@ export default function Sidebar({ codelle }) {
                                 </div>
                                 <p className='flex bg-[#232246] text-xs md:text-sm font-mono text-justify px-3 py-2 max-h-32 overflow-auto rounded-md'>{codelle}</p>
                             </div>
-                            {user ? <Statistics /> : <div className="text-[#f6f6f6] pt-4">Create an account or sign in to start tracking your stats!</div>}
+                            {user ? <Statistics /> : <div className="text-[#f6f6f6] text-sm md:text-base pt-6">Create an account or sign in to start tracking your stats!</div>}
                         </div>
                     </div>
                 </div> 
