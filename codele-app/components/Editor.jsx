@@ -4,17 +4,14 @@ import { auth, db } from '@/firebase-config';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useCodeMirror } from '@uiw/react-codemirror';
 import { python } from '@codemirror/lang-python';
-import {createTheme} from 'thememirror';
-import {tags as t} from '@lezer/highlight';
+import { createTheme } from 'thememirror';
+import { tags as t } from '@lezer/highlight';
 import '@/styles/custom-codemirror-style.css'
 
 import Sidebar from '../components/Sidebar';
-import { todaysProb } from '@/database/problems';
+import { fetchProblemsFromFirestore } from '@/database/problems';
 import { prompt } from '@/utils/prompt';
-import { fetchUserData } from '@/pages/api/fetch-data';
 import { FaPlay } from "react-icons/fa";
-
-const today = new Date().toISOString().slice(0, 10); // Format YYYY-MM-DD
 
 const codele = createTheme({
 	variant: 'dark',
@@ -89,8 +86,18 @@ const codele = createTheme({
 
 const Editor = ({ value, onChange }) => {
     const editorRef = useRef(null);
-    const todaysProblem = todaysProb;
+    const [isClient, setIsClient] = useState(false);
+    const [todaysProblem, setTodaysProblem] = useState({});
+    const [openaiResponse, setOpenAIResponse] = useState('');
 
+    useEffect(() => {
+        setIsClient(true);
+
+        fetchProblemsFromFirestore().then((selectedProblem) => {
+            setTodaysProblem(selectedProblem);
+        });
+    }, []);
+    
     const { setContainer } = useCodeMirror({
         container: editorRef.current,
         value: todaysProblem.providedCode,
@@ -109,29 +116,25 @@ const Editor = ({ value, onChange }) => {
         },
     });
 
-    const [userData, setUserData] = useState(null);
-
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                const data = await fetchUserData();
-                setUserData(data);
-            } else {
-                console.log("No user logged in");
-            }
-        });
-
-        // Cleanup subscription on unmount
-        return () => unsubscribe();
-    }, []);
+        if (editorRef.current) {
+            setContainer(editorRef.current);
+        }
+        return () => {
+            setContainer(null);
+        };
+    }, [editorRef, setContainer, todaysProblem, isClient]);
 
     const recordAttempt = async (winLoss) => {
         const user = auth.currentUser;
-        const today = new Date().toISOString().slice(0, 10); // Format YYYY-MM-DD
+        const offset = new Date().getTimezoneOffset() * 60000; // Timezone offset in milliseconds
+        const today = new Date(Date.now() - offset).toISOString().slice(0, 10);
         const userDocRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
 
+        console.log("reached")
         if (userDoc.exists()) {
+            console.log("reached 2")
             const userData = userDoc.data().userData || {};
             console.log(userData);
             const dailyAttempts = userData.dailyAttempts || {};
@@ -186,13 +189,15 @@ const Editor = ({ value, onChange }) => {
         try {
             const user = auth.currentUser;
             if (user) {
-                const today = new Date().toISOString().slice(0, 10); // Format YYYY-MM-DD
+                const offset = new Date().getTimezoneOffset() * 60000; // Timezone offset in milliseconds
+                const today = new Date(Date.now() - offset).toISOString().slice(0, 10);
                 const userDocRef = doc(db, 'users', user.uid);
                 const userDoc = await getDoc(userDocRef);
                 const userData = userDoc.data().userData || {};
 
                 // Check if attempts is < 6
                 if (auth.currentUser && userData) {
+                    console.log(today)
                     if (userData.dailyAttempts[today] < 6 || userData.lastPlayedDate !== today) {
                         recordAttempt(winLoss);
                     }
@@ -228,8 +233,6 @@ const Editor = ({ value, onChange }) => {
             console.error("Network error:", error);
         }
     };
-    
-    const [openaiResponse, setOpenAIResponse] = useState('');
 
     useEffect(() => {
         if (editorRef.current) {
@@ -252,21 +255,14 @@ const Editor = ({ value, onChange }) => {
             }
         }, 50);
 
-        return () => {
-            clearInterval(interval);
-        };
+        return () => clearInterval(interval);
     }, []);
 
-    useEffect(() => {
-        if (editorRef.current) {
-            setContainer(editorRef.current);
-        }
-        return () => {
-            setContainer(null);
-        };
-    }, [editorRef, setContainer]);
-
     let winLoss = openaiResponse && JSON.parse(openaiResponse)[1] === 'true' ? true : false;
+
+    if (!isClient) {
+        return <div>Loading...</div>; // Or any other placeholder content
+    }
 
     return (
         <>

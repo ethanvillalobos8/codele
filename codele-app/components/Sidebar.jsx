@@ -4,17 +4,22 @@ import React, { useEffect, useState } from 'react';
 import { auth } from '/firebase-config';
 import { onAuthStateChanged } from 'firebase/auth';
 import Statistics from './Statistics';
-import ProblemData, { todaysProb } from '@/database/problems';
+import { fetchProblemsFromFirestore } from '@/database/problems';
 import { PiSidebarSimpleFill, PiSidebarSimpleDuotone } from "react-icons/pi";
 import { RiRobot2Fill } from "react-icons/ri";
 
 export default function Sidebar({ codelle }) {
     const [isOpen, setIsOpen] = useState(true);
     const [user, setUser] = useState(null);
+    const [todaysProblem, setTodaysProblem] = useState({});
 
     useEffect(() => {
         onAuthStateChanged(auth, (user) => {
             setUser(user ? user : null);
+        });
+
+        fetchProblemsFromFirestore().then((selectedProblem) => {
+            setTodaysProblem(selectedProblem);
         });
     }, []);
 
@@ -33,13 +38,11 @@ export default function Sidebar({ codelle }) {
                             <div className="w-full mb-4">
                                 <h2 className="font-bold text-2xl md:text-3xl text-[#f6f6f6] mb-4">Codele of the Day</h2>
                                 <div className="w-full h-[.15rem] bg-[#4c506a] mb-4 rounded-lg opacity-50"></div>
-                                <p className='text-sm md:text-base pb-6 text-[#f6f6f6]'>{todaysProb.description}</p>
-                                {todaysProb.input && <p className='text-sm md:text-base pb-1 text-[#c2bed9]'><strong className='text-[#ededed]'>Input:</strong> {todaysProb.input}</p>}
-                                {todaysProb.output && <p className='text-sm md:text-base pb-6 text-[#c2bed9]'><strong className='text-[#ededed]'>Output:</strong> {todaysProb.output}</p>}
-                                {todaysProb.tags && <p className='text-sm md:text-base text-[#c2bed9]'><strong className='text-[#ededed]'>Tags:</strong> {todaysProb.tags.join(', ')}</p>}
+                                <p className='text-sm md:text-base pb-6 text-[#f6f6f6]'>{todaysProblem.description}</p>
+                                {todaysProblem.input && <p className='text-sm md:text-base pb-1 text-[#c2bed9]'><strong className='text-[#ededed]'>Input:</strong> {todaysProblem.input}</p>}
+                                {todaysProblem.output && <p className='text-sm md:text-base pb-6 text-[#c2bed9]'><strong className='text-[#ededed]'>Output:</strong> {todaysProblem.output}</p>}
+                                {todaysProblem.tags && <p className='text-sm md:text-base text-[#c2bed9]'><strong className='text-[#ededed]'>Tags:</strong> {todaysProblem.tags.join(', ')}</p>}
                             </div>
-                            {/* Used to import data from functional component */}
-                            <ProblemData />
                             <div className="grow w-full">
                                 <div className="flex items-center pb-4">
                                     <h2 className="text-sm md:text-base font-bold">Codelle</h2>
