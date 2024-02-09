@@ -1,127 +1,67 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import { collection, query, doc, getDocs, updateDoc } from 'firebase/firestore';
+import { db } from '@/firebase-config';
 
-const programmingProblems = [
-    {
-        id: 1,
-        description: "Write a function that finds and returns the largest number in a list.",
-        providedCode: 
-        "# This function is designed to find the largest number in a list, but it has two bugs. Can you fix them?\ndef find_largest(numbers):\n    largest = numbers[0]\n    for i in range(len(numbers)):\n        if largest < numbers[i]:\n            largest = i\n    return largest",
-        correctCode: "def find_largest(numbers):\n    largest = numbers[0]\n    for number in numbers:\n        if largest < number:\n            largest = number\n    return largest",
-        input: "A list of numbers.",
-        output: "The largest number in the list.",
-        tags: ["Lists", "Loop"]
-    },      
-    {
-        id: 2,
-        description: "Write a function that reverses a string.",
-        providedCode: 
-        "# This function is supposed to reverse a string, but it has one bug. Can you find and fix it?\ndef reverse_string(s):\n    return s[:1]",
-        correctCode: "def reverse_string(s):\n    return s[::-1]",
-        input: "A string.",
-        output: "The reversed string.",
-        tags: ["String", "Slicing"]
-    },    
-    {
-        id: 3,
-        description: "Write a function to calculate the factorial of a number.",
-        providedCode: 
-        "# This function is intended to calculate the factorial of a number, but it contains two bugs. Can you identify and correct them?\ndef factorial(n):\n    if n == 0:\n        return 0\n    else:\n        return n * factorial(n-1)",
-        correctCode: "def factorial(n):\n    if n == 0 or n == 1:\n        return 1\n    else:\n        return n * factorial(n-1)",
-        input: "A non-negative integer.",
-        output: "The factorial of the number.",
-        tags: ["Recursion", "Math"]
-    },      
-    {
-        id: 4,
-        description: "Write a function to check if a number is a prime number.",
-        providedCode: 
-        "# This function aims to check if a number is prime, but it has two bugs. Can you fix them?\ndef is_prime(num):\n    if num < 2:\n        return False\n    for i in range(2, num):\n        if num % i == 0:\n            return False\n    return True",
-        correctCode: "def is_prime(num):\n    if num < 2:\n        return False\n    for i in range(2, int(num**0.5) + 1):\n        if num % i == 0:\n            return False\n    return True",
-        input: "An integer.",
-        output: "True if the number is prime, False otherwise.",
-        tags: ["Math", "Loop"]
-    },       
-    {
-        id: 5,
-        description: "Write a function that returns the sum of all numbers in a range (inclusive).",
-        providedCode: 
-        "# This function should return the sum of all numbers in a given range, but it has one bug. Can you spot and fix it?\ndef sum_in_range(start, end):\n    total = 0\n    for i in range(start, end):\n        total += i\n    return total",
-        correctCode: "def sum_in_range(start, end):\n    total = 0\n    for i in range(start, end + 1):\n        total += i\n    return total",
-        input: "Two integers, representing the start and end of the range.",
-        output: "The sum of all numbers in the range.",
-        tags: ["Loop", "Math"]
-    },      
-];
+export const fetchProblemsFromFirestore = async () => {
+    try {
+        const problemRef = collection(db, 'problems');
+        const q = query(problemRef); // Get all documents in the collection
 
-// Clear local storage for testing
-// localStorage.clear();
+        const querySnapshot = await getDocs(q);
+        let problems = [];
 
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+        querySnapshot.forEach((doc) => {
+            problems.push({ firestoreId: doc.id, ...doc.data() });
+        });
+
+        // Get today's date considering the timezone
+        const offset = new Date().getTimezoneOffset() * 60000; // Timezone offset in milliseconds
+        const today = new Date(Date.now() - offset).toISOString().slice(0, 10);
+
+        let selectedProblem;
+        // If theres a problem with todays date, use that
+        if (problems.some((prob) => prob.dateUsed === today)) {
+            const todaysProblem = problems.find((prob) => prob.dateUsed === today);
+            selectedProblem = todaysProblem;
+            return selectedProblem;
+        } else {
+            // Filter problems that either have no dateUsed
+            problems = problems.filter((prob) => !prob.dateUsed);
+
+            if (problems.length > 0) {
+                // Select a random problem
+                selectedProblem = problems[Math.floor(Math.random() * problems.length)];
+            } else {
+                // If all problems have been used, reset their dateUsed
+                await Promise.all(querySnapshot.docs.map((doc) => 
+                    updateDoc(doc.ref, { dateUsed: null })
+                ));
+
+                // Refetch the problems
+                const resetSnapshot = await getDocs(q);
+                resetSnapshot.forEach((doc) => {
+                    problems.push({ firestoreId: doc.id, ...doc.data() });
+                });
+                selectedProblem = problems[Math.floor(Math.random() * problems.length)];
+            }
+
+            // Update the selected problem's dateUsed to today
+            await updateDoc(doc(db, 'problems', selectedProblem.firestoreId), {
+                dateUsed: today,
+            });
+
+            return selectedProblem;
+        }
+    } catch (error) {
+        console.error('Error fetching problems from Firestore:', error);
+        return null;
     }
-    return array;
-}
-
-function getTodaysProblem(shuffledProblems) {
-    const lastAccessDate = localStorage.getItem('lastAccessDate');
-    const today = new Date().toDateString();
-
-    if (lastAccessDate !== today) {
-        let currentIndex = parseInt(localStorage.getItem('currentIndex'), 10);
-        const todaysProblem = shuffledProblems[currentIndex];
-
-        currentIndex = (currentIndex + 1) % shuffledProblems.length;
-        localStorage.setItem('currentIndex', currentIndex.toString());
-        localStorage.setItem('lastAccessDate', today);
-
-        return todaysProblem;
-    }
-
-    const currentIndex = (parseInt(localStorage.getItem('currentIndex'), 10) - 1 + shuffledProblems.length) % shuffledProblems.length;
-    return shuffledProblems[currentIndex];
-}
-
-function initializeProblems(problems) {
-    const storedProblems = localStorage.getItem('shuffledProblems');
-    if (!storedProblems) {
-        const shuffledProblems = shuffleArray([...problems]);
-        localStorage.setItem('shuffledProblems', JSON.stringify(shuffledProblems));
-        localStorage.setItem('lastAccessDate', new Date().toDateString());
-        localStorage.setItem('currentIndex', '0');
-        return shuffledProblems;
-    }
-    return JSON.parse(storedProblems);
-}
-
-export const useTodaysProblem = () => {
-    const [todaysProblem, setTodaysProblem] = useState(null);
-
-    useEffect(() => {
-        const shuffledProblems = initializeProblems(programmingProblems);
-        setTodaysProblem(getTodaysProblem(shuffledProblems));
-    }, []);
-
-    return todaysProblem;
 };
 
-export let todaysProb = [];
+// Usage
+export let todaysProb = {};
 
-export default function ProblemData() {
-    const todaysProblem = useTodaysProblem();
-
-    // Check if todaysProblem is not null
-    if (!todaysProblem) {
-        return <div className='mb-4'>Loading problem...</div>;
-    }
-
-    todaysProb = todaysProblem;
-
-    return (
-        <>
-        </>
-    );
-}
+fetchProblemsFromFirestore().then((selectedProblem) => {
+    todaysProb = selectedProblem;
+});
